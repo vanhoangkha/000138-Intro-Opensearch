@@ -1,0 +1,71 @@
+[
+{
+	"uri": "/vi/1-preparation/",
+	"title": "Chuẩn Bị",
+	"tags": [],
+	"description": "",
+	"content": "Trước khi thực hiện nội dung chính của workshop này, chúng ta cần thiết lập lại ứng dụng web bằng AWS SAM.\n Tải source code dưới đây    Source code   fcjdmssam-ws6.zip  (32 ko)    Chạy các câu lệnh dưới đây  sam build sam deploy --guided Nhập nội dung như sau:   Stack Name []: fcjdmsapp AWS Region []: ap-southeast-1 Confirm changes before deploy [Y/n]: y Allow SAM CLI IAM role creation [Y/n]: y Disable rollback [y/N]: n DocsList may not have authorization defined, Is this okay? [y/N]: y DocsUpload may not have authorization defined, Is this okay? [y/N]: y DocsDelete may not have authorization defined, Is this okay? [y/N]: y GeneralInforUpload may not have authorization defined, Is this okay? [y/N]: y GeneralInforGet may not have authorization defined, Is this okay? [y/N]: y Save arguments to configuration file [Y/n]: y Deploy this changeset? [y/N]: y   Mở bảng điều khiển của AWS CloudFormation\n  Chọn Stacks ở menu bên trái và chọn stack fcjdmsapp. Sau đó chọn tab Outputs\n  Sao chép URL của API\n  Nếu bạn chưa tải code của ứng dụng thì chạy command dưới đây:  git clone https://github.com/AWS-First-Cloud-Journey/FCJ-Serverless-DMS.git cd FCJ-Serverless-Workshop npm install Mở tệp src/constant.js, dán API URL cho giá trị của APP_API_URLvà lưu tệp.  Chạy câu lệnh sau tại thư mục gốc của front-end project.  amplify init   Nhập theo các thông tin dưới đây:\n? Enter a name for the project fcjdms\nThe following configuration will be applied:\nProject information\n| Name: fcjdms\n| Environment: dev\n| Default editor: Visual Studio Code\n| App type: javascript\n| Javascript framework: react\n| Source Directory Path: src\n| Distribution Directory Path: build\n| Build Command: npm run-script build\n| Start Command: npm run-script start\n? Initialize the project with the above configuration? Yes\nUsing default provider awscloudformation\n? Select the authentication method you want to use: AWS profile\nFor more information on AWS Profiles, see:\nhttps://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html\n? Please choose the profile you want to use default\n? Help improve Amplify CLI by sharing non sensitive configurations on failures (y/N) › No\n  Chạy các câu lệnh sau để import xác thực người dùng và storage vào project:  amplify import auth  Chọn Cognito User Pool and Identity Pool cho What type of auth resource do you want to import?  amplify import storage   Chọn S3 bucket - Content (Images, audio, video, etc.) cho Select from one of the below mentioned services\n  Chọn bucket mà bạn đã tạo từ các bước trên\n  Chạy câu lệnh: amplify push để cập nhật tài nguyên cloud.\n  Chạy các lệnh dưới đây để build và tải lên S3 bucket  yarn build aws s3 cp build s3://fcjdmswebstore --recursive "
+},
+{
+	"uri": "/vi/",
+	"title": "Serverless - Tích hợp Amazon OpenSearch với DynamoDB Stream",
+	"tags": [],
+	"description": "",
+	"content": "Serverless - Tích hợp Amazon OpenSearch với DynamoDB Stream Tổng quan Trong bài số 6 của series này, chúng ta sẽ xây dựng tính năng tìm kiếm cho ứng dụng với Amazon OpenSearch tích hợp với DynamoDB stream.\nKiến trúc của ứng dụng web sẽ như sau:\nChúng ta sẽ tạo một mới 1 hàm Lambda để load streaming data từ DynamoDB với OpenSearch instance và 1 hàm để tìm kiếm tệp trong OpenSearch instance. Và chúng ta cũng ssẽ tạo một API dùng để tìm kiếm tương tác với hàm Lambda.\nAmazon OpenSearch Amazon OpenSearch Service là dịch vụ được quản lý giúp bạn dễ dàng thực hiện phân tích nhật ký tương tác, giám sát ứng dụng theo thời gian thực, tìm kiếm trang web, v.v. OpenSearch là một bộ phân tích và tìm kiếm phân tán, mã nguồn mở có nguồn gốc từ Elaticsearch. Amazon OpenSearch Service cung cấp các phiên bản OpenSearch mới nhất, hỗ trợ 19 phiên bản Elaticsearch (phiên bản 1.5 đến 7.10), cũng như khả năng trực quan hóa được cung cấp bởi OpenSearch Dashboards và Kibana (phiên bản 1.5 đến 7.10).\nAmazon OpenSearch Service quản lý công việc liên quan đến thiết lập miền, từ việc cung cấp dung lượng cơ sở hạ tầng trong môi trường mạng mà bạn yêu cầu đến cài đặt phần mềm OpenSearch hoặc Elaticsearch. Sau khi miền của bạn đang chạy, Amazon OpenSearch Service sẽ tự động hóa các tác vụ quản trị phổ biến, chẳng hạn như thực hiện sao lưu, giám sát các phiên bản và vá lỗi phần mềm.\nCác tính năng của Dịch vụ tìm kiếm mở của Amazon:\n  Scale: Nhiều cấu hình CPU, bộ nhớ và dung lượng lưu trữ được gọi là các loại phiên bản, bao gồm các phiên bản Graviton tiết kiệm chi phí\n  Security: Kiểm soát truy cập AWS Identity and Access Management (IAM), tích hợp dễ dàng với các nhóm bảo mật VPC và Amazon VPC, Mã hóa dữ liệu ở rest và mã hóa giữa các nút\n  Stability: Nhiều vị trí địa lý cho tài nguyên của bạn, Multi-AZ, các nút chính chuyên dụng để giảm tải các nhiệm vụ quản lý cụm, ảnh chụp nhanh tự động để sao lưu và khôi phục miền OpenSearch Service.\n  Flexibility: Hỗ trợ SQL để tích hợp với các ứng dụng kinh doanh thông minh (BI), gói tùy chỉnh để cải thiện kết quả tìm kiếm\n  Tích hợp với các dịch vụ phổ biến: Tích hợp với Amazon CloudWatch để theo dõi số liệu miền của Dịch vụ tìm kiếm mở và đặt cảnh báo, với AWS CloudTrail để kiểm tra lệnh gọi API cấu hình tới các miền Dịch vụ OpenSearch, với Amazon S3, Amazon Kinesis và Amazon DynamoDB để tải dữ liệu truyền trực tuyến vào OpenSearch Service,\u0026hellip;\n  DynamoDB Stream DynamoDB Stream ghi lại chuỗi sửa đổi cấp mục theo thứ tự thời gian trong bất kỳ bảng DynamoDB nào và lưu trữ thông tin này trong nhật ký trong tối đa 24 giờ. Các ứng dụng có thể truy cập nhật ký này và xem các mục dữ liệu khi chúng xuất hiện trước và sau khi chúng được sửa đổi, trong thời gian gần như thực.\nMột DynamoDB stream là một luồng thông tin được sắp xếp theo thứ tự về các thay đổi đối với các mục trong bảng DynamoDB. Khi bạn bật luồng trên bảng, DynamoDB sẽ ghi lại thông tin về mọi sửa đổi đối với các mục dữ liệu trong bảng. Bất cứ khi nào một ứng dụng tạo, cập nhật hoặc xóa các mục trong bảng, DynamoDB stream sẽ ghi một bản ghi luồng với các thuộc tính khóa chính của các mục đã được sửa đổi. Bản ghi luồng chứa thông tin về việc sửa đổi dữ liệu đối với một mục trong bảng DynamoDB.\nNội dung  Chuẩn Bị Tạo API và Lambda Function Tạo OpenSearch Instance Kiểm Tra Hoạt Động Dọn Dẹp Tài Nguyên  "
+},
+{
+	"uri": "/vi/2-create-api-and-lambda-functions/2-1-create-lambda-functions/",
+	"title": "Tạo Lambda Function",
+	"tags": [],
+	"description": "",
+	"content": "Tải source code dưới đây:\n  Source code   load_stream_data.zip  (578 ko)   search_docs.zip  (578 ko)      Mở bảng điều khiển của AWS Lambda\n  Ấn Create function\n  Nhập tên cho function: search_docs   Chọn Runtime là Python 3.9 Ấn Create function  Ấn Upload from, sau đó chọn .zip file  Ấn Upload và chọn tệp search_docs.zip bạn vừa tải về. Tiếp theo ấn Save.  Kéo xuống cuối trang, tại mục Runtime settings ấn Edit  Thay lambda_function bằng search_docs, sau đó ấn Save  Tiếp theo chúng ta sẽ cập nhật quyền cho Lambda có thể truy cập vào OpenSearch domain.   Chọn tab Configuration và chọn Permission ở menu phía bên trái Chọn role mà function đang thực hiện.  Mở rộng policy và ấn Edit  Sao chép script dưới đây và dán vào tab JSON. Sau đó ấn Review policy  ,  {  \u0026#34;Effect\u0026#34;: \u0026#34;Allow\u0026#34;,  \u0026#34;Action\u0026#34;: \u0026#34;es:*\u0026#34;,  \u0026#34;Resource\u0026#34;: \u0026#34;*\u0026#34;  } Ấn Save changes  Tương tự chúng ta sẽ tạo một function để load streaming data từ DynamoDB vào OpenSearch instance. Trở lại với bảng điều khiển của AWS Lambda, ấn Create function  Nhập tên cho function: load_stream   Chọn Runtime là Python 3.9 Ấn Create function  Ấn Upload from, sau đó chọn .zip file  Ấn Upload và chọn tệp load_stream_data.zip bạn vừa tải về. Tiếp theo ấn Save.  Kéo xuống cuối trang, tại mục Runtime settings ấn Edit  Thay lambda_function bằng load_stream_data, sau đó ấn Save  Tiếp theo chúng ta sẽ cập nhật quyền cho Lambda có thể truy cập vào OpenSearch domain và DynamoDB.   Chọn tab Configuration và chọn Permission ở menu phía bên trái Chọn role mà function đang thực hiện.  Ấn Add permissions và chọn Attach policies  Nhập tên policy AmazonOpenSearchServiceFullAccess và chọn policy đó  Nhập tên policy AWSLambdaDynamoDBExecutionRole và chọn policy đó. Sau đó ấn Add permissions  Mở bảng điều khiển của Amazon DynamoDB Chọn Tables | Update settings ở menu phía bên trái, sau đó chọn bảng Documents Ấn chọn tab Exports and streams  Kéo xuống cuối, tại mục DynamoDB stream details, ấn Create trigger  Nhập tên hàm Lambda: load_stream  Nhập 1 cho batch size Ấn Create trigger    "
+},
+{
+	"uri": "/vi/2-create-api-and-lambda-functions/2-2-create-api/",
+	"title": "Tạo API Tìm Kiếm",
+	"tags": [],
+	"description": "",
+	"content": "Trong bước này chúng ta sẽ tạo một API tương tác với hàm lambda để sử dụng cho tính năng tìm kiếm tài liệu theo user id, keyword và thuộc tính.\n Quay lại với bảng điều khiển của AWS CloudFormation. Chọn tab Resources sau đó ấn vào ID của DocApi.  Tạo một resource mới:   Chọn /{id} Ấn Actions, sau đó chọn Create Resource  Nhập tên cho resource: search. Sau đó ấn Create Resource  Tiếp theo ấn Actions và chọn Create Method  Chọn method GET và ấn biểu tượng ✓  Với Integration type, chọn Lambda function.   Tích vào Use Lambda Proxy integration. Nhập tên function: search_docs. Ấn Save.  Ấn OK  Chọn Method Request  Mở rộng phần URL Query String Parameters và ấn Add query string để thêm parameter cho method  Nhập key và ấn biểu tượng ✓.  Ấn Add query string  Nhập field và ấn biểu tượng ✓.  Chọn /search và ấn Actions. Tiếp theo chọn Enable CORS.  Ấn Enable CORS and replace existing CORS headers  Ấn Yes, replace existing values  Tiếp theo chúng ta ấn Actions và chọn Deploy API  Chọn stage dev và ấn Deploy  Bạn đã hoàn thành việc tạo API và tích hợp với hàm lambda. Trong phần tiếp chúng ta sẽ tạo OpenSearch domain.\n"
+},
+{
+	"uri": "/vi/2-create-api-and-lambda-functions/",
+	"title": "Tạo API và Lambda Function",
+	"tags": [],
+	"description": "",
+	"content": "Trong bước này, chúng ta sẽ các hàm lambda để load streaming data từ DynamoDB vào OpenSearch domain và để tìm kiếm tài liệu. Sau đó tạo API tương tác với hàm lambda đó:\n Tạo Lambda Function Tạo API Tìm Kiếm  "
+},
+{
+	"uri": "/vi/3-create-opensearch-instance/",
+	"title": "Tạo OpenSearch Instance",
+	"tags": [],
+	"description": "",
+	"content": "  Mở bảng điều khiển của Amazon OpenSearch Service\n  Ấn Create domain\n  Nhập tên cho domain: fcjdms  Chọn kiểu triển khai là Development and testing    Tại phần Data nodes:  Chọn 1 availability zone Chọn t3.small.search cho kiểu instance Nhập 2 là số lượng nodes Chọn General Purpose (SSD) - gp2 cho kiểu EC2 volume    Mở rộng phần Dedicated master nodes và tích vào Enbale dedicated master nodes  Chọn kiểu instance là t3.small.search    Chọn Public access cho Network  Chọn Create master user Nhập username, password và confirm password    Tại mục Access policy, chọn Only use fine-grained access control  Kéo xuống cuối và ấn Create  Đợi một vài phút để domain khởi tạo  Sau khi domain đã sẵn sàng, ghi lại domain endpoint và ấn vào OpenSearch Dashboards URL.  Mở bảng điều khiển của AWS Lambda. Chọn hàm search_docs  Chọn tab Configuration Chọn Environment variables ở menu phía bên trái Ấn Edit    Ấn Add environment variable  Nhập SEARCH_DOMAIN cho Key Dán OpenSearch domain endpoint vào ô Value và xoá https:// Ấn Save    Lặp lại bước 11 và 12 cho hàm load_stream Quay lại với tab của OpenSearch Dashboards, nhập thông tin user mà bạn đã tạo. Sau đó ấn Log in.  Mở menu ở góc trên bên trái và chọn Security  Chọn Roles ở menu phía bên trái  Chọn all_access    Chọn tab Mapped users và ấn Manage mapping.  Ở phần Backend roles:  Nhập Role ARN của role mà hàm search_docs đang thực thi. Ấn Add another backend role Nhập Role ARN của role mà hàm load_stream đang thực thi. Ấn Map    Bạn đã hoàn thành việc map role của các hàm Lambda cho người dùng.  "
+},
+{
+	"uri": "/vi/4-test-operation/",
+	"title": "Kiểm Tra Hoạt Động",
+	"tags": [],
+	"description": "",
+	"content": " Trở lại với bảng điều khiển của CloudFormation, chọn stack fcjdms. Sau đó chọn tab Outputs  Ghi lại giá trị của CloudFront distribution    Dán distribution vào một tab mới trong trình duyệt của bạn. Sau đó ấn Sign up  Nhập thông tin đăng ký: user name, email của bạn và mật khẩu.   Ấn Sign up  Mở email của bạn để lấy code và nhập code vào ứng dụng. Sau đó ấn Submit Nhập lại thông tin vừa đăng ký.  Ấn Sign in    Ấn Upload  Ấn Add files Chọn các tệp mà bạn muốn tải lên  Thêm tag cho các tệp hoặc bỏ qua Ấn Upload    Sau khi upload các tệp xong, chọn My Document ở menu phía bên trái.  Nhập từ khoá tìm kiếm, bạn sẽ thấy kết quả hiện ra.  Chọn Tag và nhập từ khoá mới để tìm tệp theo tag  Chọn Type và nhập từ khoá mới để tìm tệp theo kiểu tệp.  Chúng ta đã hoàn thành workshop, đã biết cách tạo và tìm kiếm với Amazon OpenSearch Service. Workshop tiếp theo chúng ta sẽ sử dụng CodePipeline để triển khai ứng dụng.\n"
+},
+{
+	"uri": "/vi/5-cleanup/",
+	"title": "Dọn Dẹp Tài Nguyên",
+	"tags": [],
+	"description": "",
+	"content": " Làm rỗng S3 bucket   Chạy câu lệnh sau: aws s3 rm s3://BUCKET_NAME --recursive Thay thế BUCKET_NAME bằng tên bucket cần làm rỗng: fcjdmswebstore, fcjdmsstore  Chạy các câu lệnh sau tại thư mục gốc của front-end project:  amplify remove storage amplify remove auth amplify push amplify delete Xoá stack của CloudFormation   Chạy câu lệnh dưới đây để xoá ứng dụng AWS SAM: sam delete --stack-name fcjdmsapp Chạy câu lệnh sau để làm rỗng S3 bucket: aws s3 rm s3://BUCKET_NAME --recursive Thay thế BUCKET_NAME bằng tên bucket bắt đầu bằng: aws-sam-cli-managed-default-samclisourcebucket- Mở bảng điều khiển của Amazon S3 Chọn bucket bắt đầu bằng aws-sam-cli-managed-default-samclisourcebucket- Ấn Show versions Chọn thư mục fcjdmsapp Chọn tất cả các object Ấn Delete Nhập permanently delete Ấn Delete Chạy câu lệnh sau để xoá stack: sam delete --stack-name aws-sam-cli-managed-default  Xoá OpenSearch domain   Mở bảng điều khiển của Amazon OpenSearch Service Chọn doamin đã tạo Ấn Delete Nhập delete Ấn Delete  "
+},
+{
+	"uri": "/vi/categories/",
+	"title": "Categories",
+	"tags": [],
+	"description": "",
+	"content": ""
+},
+{
+	"uri": "/vi/tags/",
+	"title": "Tags",
+	"tags": [],
+	"description": "",
+	"content": ""
+}]
