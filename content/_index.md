@@ -1,6 +1,6 @@
 ---
 title : "Serverless - Integrate AWS OpenSearch with a DynamoDB Stream"
-date :  "`r Sys.Date()`" 
+date: 2024-01-01
 weight : 1 
 chapter : false
 ---
