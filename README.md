@@ -1,4 +1,4 @@
-# 🔍 Intro to OpenSearch
+# Intro to OpenSearch
 
 Search and analytics with Amazon OpenSearch Service.
 
@@ -8,7 +8,7 @@ This is a hands-on workshop from the **AWS First Cloud Journey** series.
 
 ## Workshop
 
-📖 **[Start the workshop](https://vanhoangkha.github.io/000138-Intro-Opensearch/)**
+**[Start the workshop](https://vanhoangkha.github.io/000138-Intro-Opensearch/)**
 
 ## Prerequisites
 
