@@ -25,7 +25,7 @@ Trong bước này chúng ta sẽ tạo một API tương tác với hàm lambda
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-4.png?featherlight=false&width=90pc)
 
-5. Chọn method **GET** và ấn biểu tượng **✓**
+5. Chọn method **GET** và ấn biểu tượng ****
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-5.png?featherlight=false&width=90pc)
 
@@ -48,7 +48,7 @@ Trong bước này chúng ta sẽ tạo một API tương tác với hàm lambda
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-9.png?featherlight=false&width=90pc)
 
-10. Nhập `key` và ấn biểu tượng **✓**.
+10. Nhập `key` và ấn biểu tượng ****.
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-10.png?featherlight=false&width=90pc)
 
@@ -56,7 +56,7 @@ Trong bước này chúng ta sẽ tạo một API tương tác với hàm lambda
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-11.png?featherlight=false&width=90pc)
 
-12. Nhập `field` và ấn biểu tượng **✓**.
+12. Nhập `field` và ấn biểu tượng ****.
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-12.png?featherlight=false&width=90pc)
 

@@ -25,7 +25,7 @@ In this step, we will create an interactive API with a lambda function for docum
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-4.png?featherlight=false&width=90pc)
 
-5. Select **GET** method and click **✓** symbol.
+5. Select **GET** method and click **** symbol.
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-5.png?featherlight=false&width=90pc)
 
@@ -48,7 +48,7 @@ In this step, we will create an interactive API with a lambda function for docum
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-9.png?featherlight=false&width=90pc)
 
-10. Select `key` and click **✓** symbol.
+10. Select `key` and click **** symbol.
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-10.png?featherlight=false&width=90pc)
 
@@ -56,7 +56,7 @@ In this step, we will create an interactive API with a lambda function for docum
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-11.png?featherlight=false&width=90pc)
 
-12. Select `field` and click **✓** symbol.
+12. Select `field` and click **** symbol.
 
 ![CreateAPI](/images/2-create-api-and-lambda-functions/2-2-create-api-12.png?featherlight=false&width=90pc)
 
